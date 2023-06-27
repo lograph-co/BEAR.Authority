@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of PHP CS Fixer.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *     Dariusz Rumiński <dariusz.ruminski@gmail.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Ryo88c\Authority;
 
 use BEAR\Resource\Exception\BadRequestException;
@@ -45,8 +55,9 @@ final class AuthorityInterceptor implements MethodInterceptor
     public function invoke(MethodInvocation $invocation)
     {
         $caller = $invocation->getThis();
+
         try {
-            if (! ($caller instanceof ResourceObject)) {
+            if (!$caller instanceof ResourceObject) {
                 throw new \LogicException('Caller must be ResourceObject.');
             }
             $accessToken = null;
@@ -55,7 +66,7 @@ final class AuthorityInterceptor implements MethodInterceptor
             } elseif (isset($caller->uri->query['access_token'])) {
                 $accessToken = $caller->uri->query['access_token'];
             }
-            if (! $this->authentication->authenticate($this->authorization->authorize($accessToken), $invocation)) {
+            if (!$this->authentication->authenticate($this->authorization->authorize($accessToken), $invocation)) {
                 throw new PermissionDeniedException('You do not have a permission to access.');
             }
 
@@ -79,24 +90,27 @@ final class AuthorityInterceptor implements MethodInterceptor
         return $caller;
     }
 
-    public function raiseError(ResourceObject &$ro, $error = null, $description = null) : void
+    public function raiseError(ResourceObject &$ro, $error = null, $description = null): void
     {
         $ro->headers['WWW-Authenticate'] = sprintf('Bearer realm="%s"', $this->config['realm']);
-        if (! empty($error)) {
+        if (!empty($error)) {
             $ro->headers['WWW-Authenticate'] .= sprintf(',error="%s"', $error);
         }
-        if (! empty($description)) {
+        if (!empty($description)) {
             $ro->headers['WWW-Authenticate'] .= sprintf(',error_description="%s"', $description);
         }
+
         switch ($error) {
             case 'invalid_request':
                 $ro->code = StatusCode::BAD_REQUEST;
 
                 break;
+
             case 'insufficient_scope':
                 $ro->code = StatusCode::FORBIDDEN;
 
                 break;
+
             case 'invalid_token':
             default:
                 $ro->code = StatusCode::UNAUTHORIZED;

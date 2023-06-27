@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of PHP CS Fixer.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *     Dariusz Rumiński <dariusz.ruminski@gmail.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Ryo88c\Authority;
 
 use Aura\Web\Request;
@@ -40,9 +50,9 @@ final class Authorization implements AuthorizationInterface
     /**
      * {@inheritdoc}
      */
-    public function authorize($accessToken = null) : Audience
+    public function authorize($accessToken = null): Audience
     {
-        if ($accessToken === null) {
+        if (null === $accessToken) {
             if (isset($this->audience)) {
                 return $this->audience;
             }
@@ -57,7 +67,7 @@ final class Authorization implements AuthorizationInterface
     /**
      * {@inheritdoc}
      */
-    public function tokenize(AbstractAudience $aud, int $exp = null) : array
+    public function tokenize(AbstractAudience $aud, int $exp = null): array
     {
         if (empty($exp)) {
             $exp = time() + 1800;
@@ -69,13 +79,13 @@ final class Authorization implements AuthorizationInterface
         return [
             'expiresIn' => $exp,
             'accessToken' => $accessToken,
-            'refreshToken' => $refreshToken
+            'refreshToken' => $refreshToken,
         ];
     }
 
-    public function encodeToken($payload, $key = null) : string
+    public function encodeToken($payload, $key = null): string
     {
-        if ($key === null) {
+        if (null === $key) {
             $key = $this->getPrivateKey();
         }
         if ($payload instanceof AbstractPayload) {
@@ -87,19 +97,19 @@ final class Authorization implements AuthorizationInterface
 
     public function decodeToken($jwt, $key = null)
     {
-        if ($key === null) {
+        if (null === $key) {
             $key = $this->getPrivateKey();
         }
 
         return JWT::decode($jwt, $key, [$this->config['jwt']['algorithm']]);
     }
 
-    public function hasToken() : bool
+    public function hasToken(): bool
     {
         return null !== $this->extractToken();
     }
 
-    public function extractToken() : string
+    public function extractToken(): string
     {
         $token = null;
         $header = (string) $this->request->headers->get('authorization');
@@ -114,7 +124,7 @@ final class Authorization implements AuthorizationInterface
             }
             if (null !== $tokenOnPost) {
                 if (null !== $token) {
-                    throw new DuplicateAccessTokenException;
+                    throw new DuplicateAccessTokenException();
                 }
                 $token = $tokenOnPost;
             }
@@ -126,41 +136,41 @@ final class Authorization implements AuthorizationInterface
         }
         if (null !== $tokenOnGet) {
             if (null !== $token) {
-                throw new DuplicateAccessTokenException;
+                throw new DuplicateAccessTokenException();
             }
             $token = $tokenOnGet;
         }
 
         if (empty($token)) {
-            throw new TokenNotFoundException;
+            throw new TokenNotFoundException();
         }
 
         return (string) $token;
     }
 
-    public function generatePrivateKey() : string
+    public function generatePrivateKey(): string
     {
         $keyResource = openssl_pkey_new($this->config['openssl']);
-        if (! is_resource($keyResource)) {
-            throw new \RuntimeException;
+        if (!\is_resource($keyResource)) {
+            throw new \RuntimeException();
         }
         openssl_pkey_export($keyResource, $privateKey);
 
         return $privateKey;
     }
 
-    private function getPrivateKey() : string
+    private function getPrivateKey(): string
     {
-        if (! file_exists($this->config['privateKey']['filePath'])) {
+        if (!file_exists($this->config['privateKey']['filePath'])) {
             file_put_contents($this->config['privateKey']['filePath'], $this->generatePrivateKey());
         }
 
         return $this->fileGetContests($this->config['privateKey']['filePath']);
     }
 
-    private function fileGetContests(string $file) : string
+    private function fileGetContests(string $file): string
     {
-        $fileContents = \file_get_contents($file);
+        $fileContents = file_get_contents($file);
         if (\is_string($fileContents)) {
             return $file;
         }

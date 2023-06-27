@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of PHP CS Fixer.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *     Dariusz Rumiński <dariusz.ruminski@gmail.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Ryo88c\Authority;
 
 use BEAR\Resource\Resource;
@@ -11,7 +21,11 @@ use Koriym\HttpConstants\StatusCode;
 use PHPUnit\Framework\TestCase;
 use Ray\Di\Injector;
 
-class AuthorityTest extends TestCase
+/**
+ * @internal
+ * @coversNothing
+ */
+final class AuthorityTest extends TestCase
 {
     /**
      * @var AuthorizationInterface
@@ -23,127 +37,134 @@ class AuthorityTest extends TestCase
      */
     private $tmpDir;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         unset($_SERVER['HTTP_AUTHORIZATION'], $_SERVER['REQUEST_METHOD'], $_GET['accessToken'], $_POST['accessToken']);
 
         $this->tmpDir = $_ENV['TMP_DIR'] ?? '';
-        $injector = new Injector(new AppModule, $this->tmpDir);
+        $injector = new Injector(new AppModule(), $this->tmpDir);
         $this->authorization = $injector->getInstance(AuthorizationInterface::class);
     }
 
-    public function testSuccessAuthorizeByAllow() : void
+    public function testSuccessAuthorizeByAllow(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'admin', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::OK, $response->code);
+        static::assertSame(StatusCode::OK, $response->code);
     }
 
-    public function testFailAuthorizeByAllow() : void
+    public function testFailAuthorizeByAllow(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'guest', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::FORBIDDEN, $response->code);
-        $this->assertSame(
+        static::assertSame(StatusCode::FORBIDDEN, $response->code);
+        static::assertSame(
             'Bearer realm="Auth required.",error="insufficient_scope",error_description="You do not have a permission to access."',
             $response->headers['WWW-Authenticate']
         );
     }
 
-    public function testFailAuthorizeByAllowWithoutToken() : void
+    public function testFailAuthorizeByAllowWithoutToken(): void
     {
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::UNAUTHORIZED, $response->code);
-        $this->assertSame('Bearer realm="Auth required."', $response->headers['WWW-Authenticate']);
+        static::assertSame(StatusCode::UNAUTHORIZED, $response->code);
+        static::assertSame('Bearer realm="Auth required."', $response->headers['WWW-Authenticate']);
     }
 
-    public function testSuccessAuthorizeByDeny() : void
+    public function testSuccessAuthorizeByDeny(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'admin', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredDeny')->request();
 
-        $this->assertSame(StatusCode::OK, $response->code);
+        static::assertSame(StatusCode::OK, $response->code);
     }
 
-    public function testFailAuthorizeByDeny() : void
+    public function testFailAuthorizeByDeny(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'guest', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredDeny')->request();
 
-        $this->assertSame(StatusCode::FORBIDDEN, $response->code);
-        $this->assertSame(
+        static::assertSame(StatusCode::FORBIDDEN, $response->code);
+        static::assertSame(
             'Bearer realm="Auth required.",error="insufficient_scope",error_description="You do not have a permission to access."',
             $response->headers['WWW-Authenticate']
         );
     }
 
-    public function testFailAuthorizeByDenyWithoutToken() : void
+    public function testFailAuthorizeByDenyWithoutToken(): void
     {
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::UNAUTHORIZED, $response->code);
-        $this->assertSame('Bearer realm="Auth required."', $response->headers['WWW-Authenticate']);
+        static::assertSame(StatusCode::UNAUTHORIZED, $response->code);
+        static::assertSame('Bearer realm="Auth required."', $response->headers['WWW-Authenticate']);
     }
 
-    public function testFailAuthorizeByMultipleToken1() : void
+    public function testFailAuthorizeByMultipleToken1(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'admin', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
         $_GET['accessToken'] = $token['accessToken'];
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
-        /* @var Resource $resource */
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
+
+        /** @var resource $resource */
         $response = $resource->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::BAD_REQUEST, $response->code);
+        static::assertSame(StatusCode::BAD_REQUEST, $response->code);
     }
 
-    public function testFailAuthorizeByMultipleToken2() : void
+    public function testFailAuthorizeByMultipleToken2(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'admin', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['accessToken'] = $token['accessToken'];
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
         $response = $resource->post->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::BAD_REQUEST, $response->code);
+        static::assertSame(StatusCode::BAD_REQUEST, $response->code);
     }
 
-    public function testFailAuthorizeByMultipleToken3() : void
+    public function testFailAuthorizeByMultipleToken3(): void
     {
         $token = $this->authorization->tokenize(new Audience(['id' => 1, 'role' => 'admin', 'label' => 'Master']));
         $_SERVER['HTTP_AUTHORIZATION'] = sprintf('Bearer %s', $token['accessToken']);
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_GET['accessToken'] = $_POST['accessToken'] = $token['accessToken'];
 
-        $resource = (new Injector(new AppModule, $this->tmpDir))->getInstance(ResourceInterface::class);
+        $resource = (new Injector(new AppModule(), $this->tmpDir))->getInstance(ResourceInterface::class);
         $response = $resource->post->uri('app://self/authRequiredAllow')->request();
 
-        $this->assertSame(StatusCode::BAD_REQUEST, $response->code);
+        static::assertSame(StatusCode::BAD_REQUEST, $response->code);
     }
 }
