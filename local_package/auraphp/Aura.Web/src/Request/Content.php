@@ -17,6 +17,8 @@ namespace Aura\Web\Request;
  */
 class Content
 {
+    protected $charset;
+
     /**
      *
      * Content decoder callables.
