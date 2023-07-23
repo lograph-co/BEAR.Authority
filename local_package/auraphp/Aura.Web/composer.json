@@ -8,6 +8,7 @@
     ],
     "homepage": "https://github.com/auraphp/Aura.Web",
     "license": "BSD-2-Clause",
+    "version": "2.2.1",
     "authors": [
         {
             "name": "Aura.Web Contributors",
