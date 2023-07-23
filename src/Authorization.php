@@ -6,6 +6,7 @@ namespace Ryo88c\Authority;
 
 use Aura\Web\Request;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Ray\Di\Di\Named;
 
 final class Authorization implements AuthorizationInterface
@@ -77,6 +78,8 @@ final class Authorization implements AuthorizationInterface
     {
         if ($key === null) {
             $key = $this->getPrivateKey();
+        } else {
+            $key = file_get_contents($key);
         }
         if ($payload instanceof AbstractPayload) {
             $payload = $payload->toArray();
@@ -89,9 +92,12 @@ final class Authorization implements AuthorizationInterface
     {
         if ($key === null) {
             $key = $this->getPrivateKey();
+        } else {
+            $key = file_get_contents($key);
         }
 
-        return JWT::decode($jwt, $key, [$this->config['jwt']['algorithm']]);
+//        return JWT::decode($jwt, $key, [$this->config['jwt']['algorithm']]);
+        return JWT::decode($jwt, new Key($key, $this->config['jwt']['algorithm']));
     }
 
     public function hasToken() : bool
@@ -141,7 +147,7 @@ final class Authorization implements AuthorizationInterface
     public function generatePrivateKey() : string
     {
         $keyResource = openssl_pkey_new($this->config['openssl']);
-        if (! is_resource($keyResource)) {
+        if (! is_object($keyResource)) {
             throw new \RuntimeException;
         }
         openssl_pkey_export($keyResource, $privateKey);
